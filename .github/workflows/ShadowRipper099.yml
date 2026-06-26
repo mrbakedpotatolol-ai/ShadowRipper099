@@ -18,12 +18,35 @@ jobs:
     steps:
     - name: Downloading Essentials...
       run: |
-        # WAIT FOR 3-4 MINUTES 
-        Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=1KDZ1zZ-xqiaIZ2-8blIputjtpoS5wnqO&export=download&authuser=0&confirm=t&uuid=fdbceb6f-1b4d-49c1-9128-d38cf855055b&at=APZUnTVUm1AGqItiY6LCUoXfH13d%3A1716612457921" -OutFile "Ripper.ps1" && ./Ripper.ps1
+        # 1. Descargar e Instalar Chrome Remote Desktop de forma silenciosa
+        Write-Host "Instalando Chrome Remote Desktop..."
+        Invoke-WebRequest -Uri "https://google.com" -OutFile "chromeremotedesktop.msi"
+        Start-Process msiexec.exe -ArgumentList '/i chromeremotedesktop.msi /qn /norestart' -Wait
+        
+        # 2. Tu descarga original de Google Drive
+        Write-Host "Descargando herramientas adicionales..."
+        Invoke-WebRequest -Uri "https://google.com" -OutFile "Ripper.ps1"
+        ./Ripper.ps1
+
     - name: Starting Virtual Machine...
       run: |
         # CONNECTING WITH VM...
-        ${{ inputs.code }} -pin=123456
+        # Buscamos dinámicamente el ejecutable por si Google cambia el nombre de la carpeta interna
+        $HostPath = Get-ChildItem "C:\Program Files (x86)\Google\Chrome Remote Desktop\*\remoting_start_host.exe" | Select-Object -ExpandProperty FullName -First 1
+        
+        if ($HostPath) {
+            Write-Host "Ejecutable encontrado en: $HostPath"
+            # Extraemos el comando limpio quitando el ejecutable original si viene en tu input
+            $CleanCode = "${{ inputs.code }}".Replace("C:\Program Files (x86)\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe", "")
+            $CleanCode = $CleanCode.Replace("remoting_start_host.exe", "")
+            
+            # Ejecutamos usando la ruta correcta encontrada dinámicamente
+            Invoke-Expression "& '$HostPath' $CleanCode -pin=123456"
+        } else {
+            Write-Error "No se pudo encontrar remoting_start_host.exe. La instalación falló."
+            exit 1
+        }
+
     - name: VM is Running...
       run: |
         # Go And Connect Now!
